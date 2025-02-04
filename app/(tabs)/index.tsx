@@ -1,42 +1,40 @@
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import Button from '../components/Button';
 import { useState } from "react";
+import { getAdviceFromMistral } from '../ai';
+import Markdown from 'react-native-markdown-display';
 
 // Define mood types explicitly
 type Mood = 'happy' | 'neutral' | 'sad';
 
 export default function Index() {
-  const [adviceShown, setAdviceShown] = useState<boolean>(false); // Type for adviceShown
-  const [adviceText, setAdviceText] = useState<string>(''); // Type for adviceText
+  const [adviceShown, setAdviceShown] = useState<boolean>(false);
+  const [adviceText, setAdviceText] = useState<string>('');
 
-  // Define function with typed mood argument
-  function toggleAdviceShown(mood: Mood): void {
-    setAdviceShown(true);
-
-    switch (mood) {
-      case 'happy':
-        setAdviceText('Keep up the great work! Stay positive.');
-        break;
-      case 'neutral':
-        setAdviceText('It’s okay to have neutral days. Take it easy.');
-        break;
-      case 'sad':
-        setAdviceText('It’s okay to feel sad. Take some time to relax.');
-        break;
-      default:
-        setAdviceText('');
+  async function getAdvice(mood: Mood) {
+    try {
+      const generatedAdvice = await getAdviceFromMistral(mood);
+      if (generatedAdvice) {
+        console.log(generatedAdvice);
+        setAdviceText(generatedAdvice);
+        setAdviceShown(true);
+      }
+    } catch (error) {
+      console.error("Error fetching advice:", error);
     }
   }
 
-  // Function to reset the advice
   function resetAdvice(): void {
     setAdviceText('');
     setAdviceShown(false);
   }
 
   return (
-    <View style={styles.container}>
-
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.contentContainer}
+      keyboardShouldPersistTaps="handled" // Ensures buttons are clickable
+    >
       <View style={styles.titleContainer}>
         <Text style={styles.title}>
           Select how you're feeling right now
@@ -44,33 +42,42 @@ export default function Index() {
       </View>
 
       <View style={styles.moodContainer}>
-        <Button onPress={() => toggleAdviceShown('happy')} mood="happy" />
-        <Button onPress={() => toggleAdviceShown('neutral')} mood="neutral" />
-        <Button onPress={() => toggleAdviceShown('sad')} mood="sad" />
+        <Button onPress={() => getAdvice('happy')} mood="happy" />
+        <Button onPress={() => getAdvice('neutral')} mood="neutral" />
+        <Button onPress={() => getAdvice('sad')} mood="sad" />
       </View>
 
-      {/* Display the advice text if shown */}
-      <View style={styles.titleContainer}>
-        {adviceShown && <Text style={styles.title}>{adviceText}</Text>}
-      </View>
+      {adviceShown && (
+        <View style={styles.adviceContainer}>
+          <Markdown style={markdownStyles}>{adviceText}</Markdown>
+        </View>
+      )}
 
-      {/* Show the "Select Again" button after advice is shown */}
       {adviceShown && (
         <View style={styles.selectAgainContainer}>
           <Button
             onPress={resetAdvice}
-            mood="neutral" // You can keep the mood here, but apply custom style below
-            label="Select Again" // Add label to the Button
-            customStyle={styles.selectAgainButton} // Pass custom style for the "Select Again" button
+            mood="neutral"
+            label="Select Again"
+            customStyle={styles.selectAgainButton}
           />
         </View>
       )}
-
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: 'rgb(30, 40, 50)',
+  },
+  contentContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 50, // Prevents content from being cut off at the bottom
+  },
   moodContainer: {
     flexDirection: 'row',
     justifyContent: "center",
@@ -78,38 +85,31 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 10,
   },
-  container: {
-    flex: 1,
-    display:"flex",
-    backgroundColor: 'rgb(30, 40, 50)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   titleContainer: {
-    marginTop: 0,
-    marginBottom: 0,
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,
     color: '#fff',
   },
+  adviceContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
   selectAgainContainer: {
-    display: "flex",
-    justifyContent: "center",
+    marginTop: 20,
     alignItems: "center",
-    marginTop: 20, // Add some margin to space out the button
-    width: '100%',  // Ensures the container takes up the full width
-    alignSelf: 'center', // Centers the container horizontally
   },
   selectAgainButton: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
     backgroundColor: 'rgb(35, 45, 55)',
     borderRadius: 20,
     minWidth: 100,
-    maxHeight:70,
+    maxHeight: 70,
   },
-
 });
+
+const markdownStyles = {
+  text: { color: '#fff', fontSize: 18 },
+  strong: { fontWeight: 'bold', color: '#FFD700' },
+  list_item: { color: '#fff', fontSize: 16 },
+};
