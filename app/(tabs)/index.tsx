@@ -1,14 +1,24 @@
 import { View, StyleSheet, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Button from '../components/MoodButton';
 import { useState } from "react";
-import { getAdviceFromClaude } from '../ai';
+import { getAdviceFromClaude, getCoachAdviceFromClaude } from '../ai';
+import { getTeacherAdviceFromClaude } from '../ai';
 import Markdown from 'react-native-markdown-display';
+import { useRef } from 'react';
+import MoodButton from '../components/MoodButton';
+
+
 
 // Define types
-type Mood = "reallyHappy" | "happy" | "neutral" | "sad" | "reallySad" | "bully";
-type Context = 'work' | 'home' | 'outside' | 'school' | null;
+type Mood = "happy" | "neutral" | "sad" | "bully" | "tired" | "stressed" | "sore";
+type Context = 'work' | 'home' | 'outside' | 'school' | "training" | null;
 type AloneOrWithPeople = 'alone' | 'with_people' | null;
 type SchoolRole = 'student' | 'teacher' | null;
+type TrainingRole = "athlete" | "coach" | null;
+
+
+
+
 
 export default function Index() {
   const [adviceShown, setAdviceShown] = useState(false);
@@ -17,31 +27,44 @@ export default function Index() {
   const [selectedContext, setSelectedContext] = useState<Context>(null);
   const [selectedCompany, setSelectedCompany] = useState<AloneOrWithPeople>(null);
   const [selectedSchoolRole, setSelectedSchoolRole] = useState<SchoolRole>(null);
+  const [selectedTrainingRole, setSelectedTrainingRole] = useState<TrainingRole>(null);
   const [selectedMoods, setSelectedMoods] = useState<Mood[]>([]);
   const [results, setResults] = useState<{
     totalMoods: number;
     moodCounts: Record<Mood, number>;
+    happyPercentage: string;
     neutralPercentage: string;
     sadPercentage: string;
-    reallySadPercentage: string;
     bullyPercentage: string;
+    tiredPercentage: string;
+    stressedPercentage: string;
+    sorePercentage: string;
   } | null>(null);
+  const [moodCounter, setMoodCounter] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+
+
+
+
 
   async function getAdvice(mood: Mood) {
     console.log("Mood selected:", mood);
     console.log("Current context:", selectedContext);
     console.log("Current school role:", selectedSchoolRole);
 
-    if (selectedContext === "school" && selectedSchoolRole === "teacher") {
+    if (selectedContext === "school" && selectedSchoolRole === "teacher" ||
+      selectedContext === "training" && selectedTrainingRole === "coach") {
       console.log("Adding mood to the list for later analysis...");
       setSelectedMoods((prevMoods) => [...prevMoods, mood]);
+      setMoodCounter((prevCount) => prevCount + 1);
       return;
     }
 
     console.log("Fetching advice from AI...");
     setLoading(true);
     try {
-      const generatedAdvice = await getAdviceFromClaude(mood, selectedContext, selectedCompany, selectedSchoolRole);
+      const generatedAdvice = await getAdviceFromClaude(mood, selectedContext, selectedCompany, selectedSchoolRole, selectedTrainingRole);
       if (generatedAdvice) {
         console.log("AI Response:", generatedAdvice);
         setAdviceText(generatedAdvice);
@@ -61,10 +84,13 @@ export default function Index() {
     setSelectedContext(null);
     setSelectedCompany(null);
     setSelectedSchoolRole(null);
+    setSelectedTrainingRole(null);
     setSelectedMoods([]);
+    setResults(null);
+    setMoodCounter(0);
   }
 
-  function finishSelection() {
+  async function finishSelection() {
     console.log("Finishing selection...");
 
     // Count occurrences of each mood
@@ -74,33 +100,70 @@ export default function Index() {
     }, {} as Record<Mood, number>);
 
     const totalMoods = selectedMoods.length;
+    const happyCount = moodCounts["happy"] || 0;
     const neutralCount = moodCounts["neutral"] || 0;
     const sadCount = moodCounts["sad"] || 0;
-    const reallySadCount = moodCounts["reallySad"] || 0;
     const bullyCount = moodCounts["bully"] || 0;
+    const tiredCount = moodCounts["tired"] || 0;
+    const stressedCount = moodCounts["stressed"] || 0;
+    const soreCount = moodCounts["sore"] || 0;
 
     // Calculate percentages
+    const happyPercentage = totalMoods ? ((happyCount / totalMoods) * 100).toFixed(2) : "0";
     const neutralPercentage = totalMoods ? ((neutralCount / totalMoods) * 100).toFixed(2) : "0";
     const sadPercentage = totalMoods ? ((sadCount / totalMoods) * 100).toFixed(2) : "0";
-    const reallySadPercentage = totalMoods ? ((reallySadCount / totalMoods) * 100).toFixed(2) : "0";
     const bullyPercentage = totalMoods ? ((bullyCount / totalMoods) * 100).toFixed(2) : "0";
+    const tiredPercentage = totalMoods ? ((tiredCount / totalMoods) * 100).toFixed(2) : "0";
+    const stressedPercentage = totalMoods ? ((stressedCount / totalMoods) * 100).toFixed(2) : "0";
+    const sorePercentage = totalMoods ? ((soreCount / totalMoods) * 100).toFixed(2) : "0";
 
-    console.log("Total moods selected:", totalMoods);
-    console.log("Mood counts:", moodCounts);
-    console.log("Neutral %:", neutralPercentage);
-    console.log("Sad %:", sadPercentage);
-    console.log("Really Sad %:", reallySadPercentage);
-    console.log("Bully %:", bullyPercentage);
 
+    // Display results and allow for further analysis
     setResults({
       totalMoods,
       moodCounts,
+      happyPercentage,
       neutralPercentage,
       sadPercentage,
-      reallySadPercentage,
       bullyPercentage,
+      tiredPercentage,
+      stressedPercentage,
+      sorePercentage
     });
   }
+
+
+  async function furtherAnalysis(){
+    setLoading(true);
+    try {
+      const generatedAdvice = await getTeacherAdviceFromClaude(selectedMoods);
+      if (generatedAdvice) {
+        setAdviceText(generatedAdvice);
+        setAdviceShown(true);
+      }
+    } catch (error) {
+      console.error("Error fetching AI advice:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function furtherAnalysis2(){
+    setLoading(true);
+    try {
+      const generatedAdvice = await getCoachAdviceFromClaude(selectedMoods);
+      if (generatedAdvice) {
+        setAdviceText(generatedAdvice);
+        setAdviceShown(true);
+      }
+    } catch (error) {
+      console.error("Error fetching AI advice:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
 
 
   return (
@@ -114,18 +177,19 @@ export default function Index() {
       </View>
 
       <View style={styles.contextContainer}>
-        {['work', 'home', 'outside', 'school'].map((context) => (
+        {['work', 'home', 'outside', 'school', 'training'].map((context) => (
           <Button
             key={context}
             onPress={() => {
               console.log("Context selected:", context);
               setSelectedContext(context as Context);
               setSelectedSchoolRole(null);
+              setSelectedTrainingRole(null);
               setSelectedMoods([]);
               setSelectedCompany(null);
             }}
             mood="neutral"
-            label={context.replace('_', ' ')}
+            label={context}
             variant='context'
             customStyle={[
               styles.contextButton,
@@ -135,29 +199,79 @@ export default function Index() {
         ))}
       </View>
 
+
+
       {/* Show role selection only if "school" is selected */}
       {selectedContext === 'school' && (
         <>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Are you a student or teacher?</Text>
+            <Text style={styles.title}>Are you a student or a teacher?</Text>
           </View>
 
           <View style={styles.contextContainer}>
-            {['student', 'teacher'].map((role) => (
-              <Button
-                key={role}
-                onPress={() => {
-                  console.log("School role selected:", role);
-                  setSelectedSchoolRole(role as SchoolRole);
-                }}
-                mood="neutral"
-                label={role.replace('_', ' ')}
-                customStyle={[
-                  styles.contextButton,
-                  selectedSchoolRole === role && styles.selectedContextButton,
-                ]}
-              />
-            ))}
+          <View style={styles.contextContainer}>
+      <Button
+        onPress={() => {
+          console.log("School role selected: student");
+          setSelectedSchoolRole("student");
+        }}
+        label='Student'
+        customStyle={[
+          styles.contextButton,
+          selectedSchoolRole === "student" && styles.selectedContextButton,
+          ]}
+        ></Button>
+
+  <Button
+    onPress={() => {
+      console.log("School role selected: teacher");
+      setSelectedSchoolRole("teacher");
+    }}
+    mood="neutral"
+    label="Teacher"
+    customStyle={[
+      styles.contextButton,
+      selectedSchoolRole === "teacher" && styles.selectedContextButton,
+    ]}
+  />
+</View>
+          </View>
+        </>
+      )}
+
+{selectedContext === 'training' && (
+        <>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Are you an athlete or a coach?</Text>
+          </View>
+
+          <View style={styles.contextContainer}>
+          <View style={styles.contextContainer}>
+      <Button
+        onPress={() => {
+          console.log("Training role selected: Athlete");
+          setSelectedTrainingRole("athlete");
+        }}
+        label='Athlete'
+        customStyle={[
+          styles.contextButton,
+          selectedTrainingRole === "athlete" && styles.selectedContextButton,
+          ]}
+        ></Button>
+
+  <Button
+    onPress={() => {
+      console.log("Training role selected: coach");
+      setSelectedTrainingRole("coach");
+    }}
+    mood="neutral"
+    label="Coach"
+    customStyle={[
+      styles.contextButton,
+      selectedTrainingRole === "coach" && styles.selectedContextButton,
+    ]}
+  />
+</View>
           </View>
         </>
       )}
@@ -197,53 +311,207 @@ export default function Index() {
           </View>
 
           <View style={styles.moodContainer}>
-            <Button onPress={() => getAdvice('reallyHappy')} mood="reallyHappy" />
-            <Button onPress={() => getAdvice('happy')} mood="happy" />
-            <Button onPress={() => getAdvice('neutral')} mood="neutral" />
-            <Button onPress={() => getAdvice('sad')} mood="sad" />
-            <Button onPress={() => getAdvice('reallySad')} mood="reallySad" />
-            <Button onPress={() => getAdvice('bully')} mood="bully" />
+
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('happy')} mood="happy" />
+              <Text style={{color:"white"}}>Happy</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('neutral')} mood="neutral" />
+              <Text style={{color:"white"}}>Neutral</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('sad')} mood="sad" />
+              <Text style={{color:"white"}}>Sad</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('bully')} mood="bully" />
+              <Text style={{color:"white"}}>Bullied</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('tired')} mood="tired" />
+              <Text style={{color:"white"}}>Tired</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('stressed')} mood="stressed" />
+              <Text style={{color:"white"}}>Stressed</Text>
+            </View>
+
           </View>
         </>
       )}
 
-      {/* Show mood buttons for school roles */}
-      {selectedContext === "school" && selectedSchoolRole && (
+      {/* Show mood buttons for school or training roles */}
+      {((selectedContext === "school" && selectedSchoolRole) ||
+      (selectedContext === "training" && selectedTrainingRole)) && (
         <>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Select how you're feeling</Text>
           </View>
           <View style={styles.moodContainer}>
-            <Button onPress={() => getAdvice('reallyHappy')} mood="reallyHappy" />
-            <Button onPress={() => getAdvice('happy')} mood="happy" />
-            <Button onPress={() => getAdvice('neutral')} mood="neutral" />
-            <Button onPress={() => getAdvice('sad')} mood="sad" />
-            <Button onPress={() => getAdvice('reallySad')} mood="reallySad" />
-            <Button onPress={() => getAdvice('bully')} mood="bully"/>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('happy')} mood="happy" />
+              <Text style={{color:"white"}}>Happy</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('neutral')} mood="neutral" />
+              <Text style={{color:"white"}}>Neutral</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('sad')} mood="sad" />
+              <Text style={{color:"white"}}>Sad</Text>
+            </View>
+
+            {selectedContext === "school" && selectedSchoolRole && (
+              <>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('bully')} mood="bully" />
+              <Text style={{color:"white"}}>Bullied</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('tired')} mood="tired" />
+              <Text style={{color:"white"}}>Tired</Text>
+            </View>
+            <View style={styles.moodsContainer}>
+              <Button onPress={() => getAdvice('stressed')} mood="stressed" />
+              <Text style={{color:"white"}}>Stressed</Text>
+            </View>
+            </>
+            )}
+
+            {selectedContext === "training" && selectedTrainingRole && (
+               <>
+               <View style={styles.moodsContainer}>
+                 <Button onPress={() => getAdvice('sore')} mood="sore" />
+                 <Text style={{color:"white"}}>Sore</Text>
+               </View>
+               <View style={styles.moodsContainer}>
+                 <Button onPress={() => getAdvice('tired')} mood="tired" />
+                 <Text style={{color:"white"}}>Tired</Text>
+               </View>
+               <View style={styles.moodsContainer}>
+                 <Button onPress={() => getAdvice('stressed')} mood="stressed" />
+                 <Text style={{color:"white"}}>Stressed</Text>
+               </View>
+               </>
+            )}
+
+
           </View>
         </>
       )}
 
       {/* Display selected moods if School > Teacher */}
-      {selectedContext === "school" && selectedSchoolRole === "teacher" && selectedMoods.length > 0 && (
+      {((selectedContext === "school" && selectedSchoolRole === "teacher") ||
+      (selectedContext === "training" && selectedTrainingRole === "coach")) && selectedMoods.length > 0 && (
+        <>
+
         <View style={styles.moodsContainer}>
-          <Text style={styles.title}>Selected Moods (Teacher):</Text>
-          <View style={styles.selectedMoodsList}>
-            {selectedMoods.map((mood, index) => (
-              <Text key={index} style={styles.moodText}> {mood.replace(/([A-Z])/g, ' $1').trim()}</Text>
-            ))}
+          <Text style={styles.title}>Selected Moods:
+          <Text style={styles.selectedMoodsList}>{moodCounter}</Text>
+          </Text>
+          <View>
+
+
           </View>
         </View>
+        </>
       )}
 
-      {/* Display "Finish Selection" button after two moods are added */}
-      {selectedContext === "school" && selectedSchoolRole === "teacher" && selectedMoods.length >= 2 && (
+
+
+      {((selectedContext === "school" && selectedSchoolRole === "teacher") ||
+      (selectedContext === "training" && selectedTrainingRole === "coach")) && selectedMoods.length >= 2 && (
         <View style={styles.finishButtonContainer}>
-          <Button onPress={finishSelection} mood="neutral" label="Finish Selection" customStyle={styles.finishButton} />
+          <Button onPress={finishSelection} label="Finish Selection" customStyle={styles.finishButton} />
         </View>
       )}
 
-      {loading ? (
+
+     {results && (
+  <View style={styles.mainResults}>
+  <View style={styles.resultsContainer}>
+    <Text style={styles.resultsTitle}>Selection Results:</Text>
+    <Text style={styles.resultsSubtitle}>Total Moods Selected: {results.totalMoods}</Text>
+
+      <View style={styles.resultsCols}>
+
+      <View style={styles.resultsCol1}>
+  <Text style={styles.resultText}>Happy: {results.moodCounts.happy || 0}</Text>
+  <Text style={styles.resultText}>Neutral: {results.moodCounts.neutral || 0}</Text>
+  <Text style={styles.resultText}>Sad: {results.moodCounts.sad || 0}</Text>
+
+  {selectedContext === "school" && selectedSchoolRole === "teacher" && (
+    <>
+  <Text style={styles.resultText}>Bullied: {results.moodCounts.bully || 0}</Text>
+  <Text style={styles.resultText}>Tired: {results.moodCounts.tired || 0}</Text>
+  <Text style={styles.resultText}>Stressed: {results.moodCounts.stressed || 0}</Text>
+  </>
+  )}
+
+{selectedContext === "training" && selectedTrainingRole === "coach" && (
+    <>
+  <Text style={styles.resultText}>Sore: {results.moodCounts.sore || 0}</Text>
+  <Text style={styles.resultText}>Tired: {results.moodCounts.tired || 0}</Text>
+  <Text style={styles.resultText}>Stressed: {results.moodCounts.stressed || 0}</Text>
+  </>
+  )}
+
+  </View>
+
+    <View style={styles.resultsCol2}>
+    <Text style={styles.resultText}>{results.happyPercentage}%</Text>
+    <Text style={styles.resultText}>{results.neutralPercentage}%</Text>
+    <Text style={styles.resultText}>{results.sadPercentage}%</Text>
+
+    {selectedContext === "school" && selectedSchoolRole === "teacher" && (
+      <>
+    <Text style={styles.resultText}>{results.bullyPercentage}%</Text>
+    <Text style={styles.resultText}>{results.tiredPercentage}%</Text>
+    <Text style={styles.resultText}>{results.stressedPercentage}%</Text>
+    </>
+    )}
+
+    {selectedContext === "training" && selectedTrainingRole === "coach" && (
+      <>
+    <Text style={styles.resultText}>{results.sorePercentage}%</Text>
+    <Text style={styles.resultText}>{results.tiredPercentage}%</Text>
+    <Text style={styles.resultText}>{results.stressedPercentage}%</Text>
+    </>
+    )}
+
+    </View>
+</View>
+
+
+  </View>
+  <View style={styles.finishButtonContainer}>
+  <Button
+  onPress={async () => {
+    if (selectedContext === "school") {
+      await furtherAnalysis();
+    } else {
+      await furtherAnalysis2();
+    }
+  }}
+  mood="neutral"
+  label="Further Analysis"
+  customStyle={styles.furtherButton}
+/>
+        <Button
+            onPress={resetAdvice}
+            mood="neutral"
+            label="Select Again"
+            customStyle={styles.selectAgainButton}
+        />
+
+    </View>
+
+  </View>
+
+)}
+
+{loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#fff" />
         </View>
@@ -256,29 +524,14 @@ export default function Index() {
       )}
 
       {adviceShown && (
-        <View style={styles.selectAgainContainer}>
           <Button
             onPress={resetAdvice}
             mood="neutral"
             label="Select Again"
             customStyle={styles.selectAgainButton}
           />
-        </View>
+
       )}
-      {results && (
-  <View style={styles.resultsContainer}>
-    <Text style={styles.title}>Selection Results:</Text>
-    <Text style={styles.resultText}>Total Moods Selected: {results.totalMoods}</Text>
-    {Object.entries(results.moodCounts).map(([mood, count]) => (
-      <Text key={mood} style={styles.resultText}>
-        {mood.replace(/([A-Z])/g, ' $1').trim()}: {count}
-      </Text>
-    ))}
-    <Text style={styles.resultText}>Neutral: {results.neutralPercentage}%</Text>
-    <Text style={styles.resultText}>Sad: {results.sadPercentage}%</Text>
-    <Text style={styles.resultText}>Really Sad: {results.reallySadPercentage}%</Text>
-  </View>
-)}
 
 
     </ScrollView>
@@ -288,7 +541,7 @@ export default function Index() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
-    backgroundColor: 'rgb(30, 40, 50)',
+    backgroundColor: 'rgb(37, 37, 37)',
   },
   contentContainer: {
     flexGrow: 1,
@@ -321,10 +574,11 @@ const styles = StyleSheet.create({
   moodsContainer: {
     marginTop: 20,
     alignItems: 'center',
+
   },
   selectedMoodsList: {
-    marginTop: 10,
-    alignItems: 'center',
+    color:"white",
+    fontSize: 20,
   },
   moodText: {
     fontSize: 18,
@@ -334,22 +588,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   adviceContainer: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  selectAgainContainer: {
-    marginTop: 20,
+    marginHorizontal: 2,
+    gap: 20,
+    justifyContent: "center",
     alignItems: "center",
   },
+
   selectAgainButton: {
-    backgroundColor: 'rgb(35, 45, 55)',
-    borderRadius: 20,
-    minWidth: 100,
-    maxHeight: 70,
+    backgroundColor: 'rgb(25, 55, 85)',
+    alignSelf:"center",
+    minWidth: 150,
+    maxHeight: 50,
   },
   contextButton: {
     backgroundColor: 'rgb(50, 60, 70)',
-    borderRadius: 20,
     minWidth: 100,
     maxHeight: 50,
   },
@@ -357,26 +609,75 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(80, 100, 120)',
   },
   finishButtonContainer: {
-    marginTop: 20,
-    alignItems: 'center',
+    marginTop: 10,
+    gap: 0,
+
   },
   finishButton: {
     backgroundColor: 'rgb(70, 90, 110)',
-    borderRadius: 20,
-    minWidth: 200,
+    alignSelf: "center",
+    justifyContent: "center",
+    minWidth: 150,
     maxHeight: 50,
   },
+
+  furtherButton: {
+    backgroundColor: 'rgb(70, 90, 110)',
+    alignSelf: "center",
+    justifyContent: "center",
+    minWidth: 150,
+    maxHeight: 50,
+    borderColor: "white",
+    borderWidth: 2,
+  },
+
   resultsContainer: {
-    marginTop: 20,
-    padding: 10,
+    padding: 20,
     backgroundColor: 'rgb(40, 50, 60)',
     borderRadius: 10,
+    gap: 5,
+    flexDirection: "column",
   },
+  resultsTitle: {
+    alignSelf: "center",
+    fontSize: 30,
+    color: "white",
+  },
+
+  resultsSubtitle:{
+    alignSelf: "center",
+    fontSize: 20,
+    color: "white",
+    paddingBottom: 20,
+  },
+
+  resultsCols:{
+    flexDirection: "row",
+    gap: 50,
+  },
+  resultsCol1:{
+    justifyContent: "flex-start",
+    alignItems:"flex-start",
+    gap: 5,
+  },
+  resultsCol2:{
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    gap: 5,
+
+  },
+
   resultText: {
     fontSize: 18,
     color: '#fff',
     textAlign: 'center',
+
   },
+  mainResults: {
+    justifyContent:"center",
+    alignItems:"center",
+
+  }
 
 });
 

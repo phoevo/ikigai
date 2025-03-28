@@ -1,19 +1,20 @@
 import { View, Pressable, StyleSheet, Text } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
-  faFaceLaughBeam,
   faFaceSmile,
   faFaceMeh,
   faFaceFrown,
-  faFaceSadTear,
-  faHeartCrack
+  faHeartCrack,
+  faGhost,
+  faTired,
+  faFaceMehBlank
 } from "@fortawesome/free-solid-svg-icons";
 
-type Mood = "reallyHappy" | "happy" | "neutral" | "sad" | "reallySad" | "bully";
+type Mood = "happy" | "neutral" | "sad" | "bully" | "tired" | "stressed" | "sore";
 type Variant = "mood" | "context";
 
 type Props = {
-  mood: Mood;
+  mood?: Mood;
   onPress: () => void;
   label?: string;
   customStyle?: object;
@@ -22,13 +23,17 @@ type Props = {
 
 export default function MoodButton({ mood, onPress, label, customStyle, variant = "mood" }: Props) {
   const moodConfig: Record<Mood, { icon: any; color: string; label: string }> = {
-    reallyHappy: { icon: faFaceLaughBeam, color: "#4CBB17", label: "Really Happy" }, // Gold
-    happy: { icon: faFaceSmile, color: "#50C878", label: "Happy" }, // Green
-    neutral: { icon: faFaceMeh, color: "#FFC107", label: "Neutral" }, // Yellow
-    sad: { icon: faFaceFrown, color: "#FF5F1F", label: "Sad" }, // Red
-    reallySad: { icon: faFaceSadTear, color: "#DC143C", label: "Really Sad" }, // Dark Red
-    bully: { icon: faHeartCrack, color: "#D2042D", label: "Bullied" }, // Orange-Red
+    happy: { icon: faFaceSmile, color: "#50C878", label: "Happy" },
+    neutral: { icon: faFaceMeh, color: "#FFC107", label: "Neutral" },
+    sad: { icon: faFaceFrown, color: "#FF5F1F", label: "Sad" },
+    bully: { icon: faHeartCrack, color: "#D2042D", label: "Bullied" },
+    tired: { icon: faGhost, color: "#828282", label: "Tired" },
+    stressed: { icon: faTired, color: "#800080", label: "Stressed" },
+    sore: { icon: faFaceMehBlank, color: "#FF0000", label: "Sore" },
   };
+
+  // Get mood styles safely
+  const moodStyle = mood ? moodConfig[mood] : null;
 
   return (
     <View style={styles.buttonContainer}>
@@ -40,12 +45,14 @@ export default function MoodButton({ mood, onPress, label, customStyle, variant 
         ]}
         onPress={onPress}
       >
+        {/* If there's a label, show it. Otherwise, show the mood icon (if available) */}
         {label ? (
           <Text style={styles.buttonLabel}>{label}</Text>
-        ) : (
-          <FontAwesomeIcon icon={moodConfig[mood].icon} size={90} color={moodConfig[mood].color} />
-        )}
+        ) : moodStyle ? (
+          <FontAwesomeIcon icon={moodStyle.icon} size={90} color={moodStyle.color} />
+        ) : null}
       </Pressable>
+
     </View>
   );
 }
@@ -53,7 +60,8 @@ export default function MoodButton({ mood, onPress, label, customStyle, variant 
 const styles = StyleSheet.create({
   buttonContainer: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    alignItems: "center",
     width: 100,
     height: 100,
     marginVertical: 10,
@@ -63,7 +71,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
-
   },
   contextButton: {
     flex: 1,
