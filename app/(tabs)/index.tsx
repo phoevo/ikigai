@@ -682,7 +682,11 @@ const styles = StyleSheet.create({
 });
 
 const markdownStyles = {
-  text: { color: '#fff', fontSize: 18 },
+  text: { color: '#fff', fontSize: 20 },
   strong: { fontSize: 20, color: '#FFD700' },
-  list_item: { color: '#fff', fontSize: 16 },
+  list_item: { color: '#fff', fontSize: 20 },
+  paragraph: { marginBottom: 40 },
+  heading1: { fontSize: 28, fontWeight: 'bold', color: '#FFD700', marginBottom: 20 },
+  heading2: { fontSize: 24, fontWeight: 'bold', color: '#FFA500', marginBottom: 20 },
+  heading3: { fontSize: 20, alignSelf:"center", fontWeight: 'bold', color: '#FF6347', margin: 20 },
 };
