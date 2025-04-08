@@ -1,3 +1,4 @@
+import 'dotenv/config';
 
 export default {
   expo: {
@@ -45,6 +46,13 @@ export default {
       COLLECTION_ID: process.env.EXPO_PUBLIC_COLLECTION_ID,
       DOCUMENT_ID: process.env.EXPO_PUBLIC_DOCUMENT_ID,
       EXPO_PUBLIC_ANTHROPIC_API_KEY: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY,
-    }
+      eas: {
+        projectId: "1a30e6b2-0a5a-48fe-8070-a5ab393c6875"
+      }
+    },
+    updates: {
+      url: "https://u.expo.dev/1a30e6b2-0a5a-48fe-8070-a5ab393c6875"
+    },
+    runtimeVersion: "1.0.0"
   }
 };
