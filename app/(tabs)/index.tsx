@@ -697,8 +697,8 @@ const styles = StyleSheet.create({
     fontWeight: 200,
   },
   title: {
-    fontSize: 24,
-    color: '#fff',
+    fontSize: 35,
+    color: 'black',
   },
   contextContainer: {
     flexDirection: 'row',

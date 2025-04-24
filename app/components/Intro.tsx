@@ -12,7 +12,7 @@ const messages = [
         <Text style={{ color: '#ff3b3b' }}>Your</Text> mission is to float on the waves of <Text style={{ color: '#ff3b3b' }}>life.</Text> {/*red*/}
       </Text>
     ),
-    duration: 4000,
+    duration: 6000,
   },
   {
     content: (
@@ -20,7 +20,7 @@ const messages = [
         <Text style={{ color: '#03C758' }}>Life</Text> is not flat. {/*green*/}
       </Text>
     ),
-    duration: 3000,
+    duration: 5000,
   },
   {
     content: (
@@ -28,7 +28,7 @@ const messages = [
         Therefore, here's an easy tool to use on the <Text style={{ color: '#1BA5FF' }}>spot</Text>. {/*blue*/}
       </Text>
     ),
-    duration: 5000,
+    duration: 7000,
   },
   {
     content: (
@@ -36,7 +36,7 @@ const messages = [
         You don’t have to be an expert, your <Text style={{ color: '#FFAF30' }}>life is yours.</Text>{/*orange*/}
       </Text>
     ),
-    duration: 5000,
+    duration: 7000,
   },
   {
     content: (
@@ -45,12 +45,12 @@ const messages = [
         <Text style={{ color: '#03C758' }}> helpful</Text> app anytime and anywhere in the day.{/*green*/}
       </Text>
     ),
-    duration: 5000,
+    duration: 7000,
   },
 
   {
     content: <Text>Let's Get Started</Text>,
-    duration: 3000,
+    duration: 5000,
   },
 ];
 
@@ -62,12 +62,14 @@ const IntroScreen = ({ onFinish }) => {
   useEffect(() => {
     const currentMessage = messages[messageIndex];
     const halfDuration = currentMessage.duration / 2;
+    const fourthDuration = currentMessage.duration / 4;
+    const introDuration = currentMessage.duration / 1.5;
 
     const animate = () => {
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: halfDuration,
+          duration: fourthDuration,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
@@ -121,7 +123,7 @@ const IntroScreen = ({ onFinish }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#975BFF',
+    backgroundColor: 'rgb(159, 106, 252)',
     justifyContent: 'center',
     alignItems: 'center',
     fontFamily: 'Helvetica',
@@ -129,12 +131,12 @@ const styles = StyleSheet.create({
 
   },
   text: {
-    fontSize: 30,
+    fontSize: 40,
     color: 'black',
     textAlign: 'center',
     paddingHorizontal: 20,
     fontFamily: 'Helvetica',
-    fontWeight: 300,
+    fontWeight: 500,
     height: 200,
   },
 });
