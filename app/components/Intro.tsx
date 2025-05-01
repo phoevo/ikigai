@@ -9,49 +9,51 @@ const messages = [
   {
     content: (
       <Text>
-        <Text style={{ color: '#ff3b3b' }}>Your</Text> mission is to float on the waves of <Text style={{ color: '#ff3b3b' }}>life.</Text> {/*red*/}
+        You don’t have to be an expert, to use this <Text style={{ color: '#ff3b3b' }}>app.</Text> {/*red*/}
+        Just tap into how you’re <Text style={{ color: '#03C758' }}>feeling</Text> and take a step toward a better day.
+        You’re in control of your <Text style={{ color: '#1BA5FF' }}>mindset</Text>. This app is here to support you anytime and anywhere.
       </Text>
     ),
-    duration: 6000,
+    duration: 25000,
   },
-  {
-    content: (
-      <Text>
-        <Text style={{ color: '#03C758' }}>Life</Text> is not flat. {/*green*/}
-      </Text>
-    ),
-    duration: 5000,
-  },
-  {
-    content: (
-      <Text>
-        Therefore, here's an easy tool to use on the <Text style={{ color: '#1BA5FF' }}>spot</Text>. {/*blue*/}
-      </Text>
-    ),
-    duration: 7000,
-  },
-  {
-    content: (
-      <Text>
-        You don’t have to be an expert, your <Text style={{ color: '#FFAF30' }}>life is yours.</Text>{/*orange*/}
-      </Text>
-    ),
-    duration: 7000,
-  },
-  {
-    content: (
-      <Text>
-        You choose when and where to use this <Text style={{ color: '#03C758' }}>powerful</Text> and
-        <Text style={{ color: '#03C758' }}> helpful</Text> app anytime and anywhere in the day.{/*green*/}
-      </Text>
-    ),
-    duration: 7000,
-  },
+  // {
+  //   content: (
+  //     <Text>
+  //       <Text style={{ color: '#03C758' }}>Life</Text> is not flat. {/*green*/}
+  //     </Text>
+  //   ),
+  //   duration: 5000,
+  // },
+  // {
+  //   content: (
+  //     <Text>
+  //       Therefore, here's an easy tool to use on the <Text style={{ color: '#1BA5FF' }}>spot</Text>. {/*blue*/}
+  //     </Text>
+  //   ),
+  //   duration: 7000,
+  // },
+  // {
+  //   content: (
+  //     <Text>
+  //       You don’t have to be an expert, your <Text style={{ color: '#FFAF30' }}>life is yours.</Text>{/*orange*/}
+  //     </Text>
+  //   ),
+  //   duration: 7000,
+  // },
+  // {
+  //   content: (
+  //     <Text>
+  //       You choose when and where to use this <Text style={{ color: '#03C758' }}>powerful</Text> and
+  //       <Text style={{ color: '#03C758' }}> helpful</Text> app anytime and anywhere in the day.{/*green*/}
+  //     </Text>
+  //   ),
+  //   duration: 7000,
+  // },
 
-  {
-    content: <Text>Let's Get Started</Text>,
-    duration: 5000,
-  },
+  // {
+  //   content: <Text>Let's Get Started</Text>,
+  //   duration: 5000,
+  // },
 ];
 
 
@@ -64,12 +66,13 @@ const IntroScreen = ({ onFinish }) => {
     const halfDuration = currentMessage.duration / 2;
     const fourthDuration = currentMessage.duration / 4;
     const introDuration = currentMessage.duration / 1.5;
+    const fastDuration = currentMessage.duration / 5;
 
     const animate = () => {
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: fourthDuration,
+          duration: fastDuration,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
@@ -93,9 +96,11 @@ const IntroScreen = ({ onFinish }) => {
   return (
     <View style={styles.container}>
       <>
+      <View style={styles.textContainer}>
       <Animated.Text style={[styles.text, { opacity: fadeAnim }]}>
         {messages[messageIndex].content}
       </Animated.Text>
+      </View>
       </>
       <>
       <TouchableOpacity
@@ -130,14 +135,21 @@ const styles = StyleSheet.create({
     gap: 70,
 
   },
+  textContainer:{
+    margin: 15,
+    backgroundColor: 'rgb(130, 61, 249)',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   text: {
-    fontSize: 40,
+    fontSize: 20,
     color: 'black',
     textAlign: 'center',
     paddingHorizontal: 20,
     fontFamily: 'Helvetica',
-    fontWeight: 500,
-    height: 200,
+    fontWeight: 300,
+    height: 150,
   },
 });
 

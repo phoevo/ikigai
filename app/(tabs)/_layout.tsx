@@ -6,12 +6,12 @@ export default function TabsLayout() {
   return (
     <Tabs
   screenOptions={{
-    tabBarActiveTintColor: '#ffd33d',
+    tabBarActiveTintColor: 'white',
     headerStyle: {
       backgroundColor: '#975BFF',
     },
     headerShadowVisible: false,
-    headerTintColor: '#fff',
+    headerTintColor: 'white',
     tabBarStyle: {
     backgroundColor: '#975BFF',
     },
@@ -21,9 +21,27 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'AI',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />
+            <Ionicons name={focused ? 'body-sharp' : 'body-outline'} color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="question"
+        options={{
+          title: 'Question',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'help-circle' : 'help-circle-outline'} color={color} size={24}/>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="student"
+        options={{
+          title: 'Student',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} color={color} size={24}/>
           ),
         }}
       />

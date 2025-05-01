@@ -8,40 +8,52 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 
-export default function YoyoAnimation() {
-  const YoyoHeight = 250; // Maximum height of the yoyo's movement
-  const CIRCLE_SIZE = 40;
+export default function YoyoBreathing() {
+  const MAX_HEIGHT = 250;
+  const CIRCLE_SIZE = 50;
 
-
-  // Shared value for the vertical position of the yoyo
   const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
-    // Start the animation with repeat to simulate yoyo movement up and down
+    // Animate translateY (up and down) and scale (breathing)
     translateY.value = withRepeat(
-      withTiming(YoyoHeight, { duration: 1000, easing: Easing.ease }), // Move to top
-      -1, // Repeat infinitely
-      true // Reverse direction to go down
+      withTiming(MAX_HEIGHT, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
+    );
+
+    scale.value = withRepeat(
+      withTiming(1.5, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
     );
   }, []);
 
-  // Animated style for the circle
   const circleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
   }));
 
-  // Animated style for the string (line)
   const lineStyle = useAnimatedStyle(() => ({
-    height: translateY.value + YoyoHeight, // Length of the string adjusts based on yoyo's position
+    height: translateY.value + CIRCLE_SIZE / 2,
   }));
 
   return (
     <View style={styles.container}>
       <View style={styles.lineContainer}>
-        {/* The string of the yoyo */}
+        {/* String */}
         <Animated.View style={[styles.line, lineStyle]} />
 
-        {/* The yoyo circle */}
+        {/* Circle (Yoyo) */}
         <Animated.View
           style={[styles.circle, { width: CIRCLE_SIZE, height: CIRCLE_SIZE }, circleStyle]}
         />
@@ -52,24 +64,30 @@ export default function YoyoAnimation() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
+    height: 380,
+    width: 380,
+    backgroundColor: "#eef2ff",
+    justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
   },
   lineContainer: {
-    justifyContent: "center",
     alignItems: "center",
     position: "relative",
   },
   line: {
     position: "absolute",
     width: 2,
-    backgroundColor: "#000",
+    backgroundColor: "#94a3b8",
+    top: 0,
   },
   circle: {
     backgroundColor: "#6366f1",
-    borderRadius: 15,
-    position: "absolute", // Position the circle relative to the line
+    borderRadius: 100, // Fully round
+    position: "absolute",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5, // Android shadow
   },
 });

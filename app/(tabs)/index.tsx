@@ -13,9 +13,10 @@ import Waves from '../animations/waves';
 import HeartAnimation from '../animations/heart';
 import BubbleBreathingExercise from '../animations/bubble';
 import IntroScreen from '../components/Intro';
+import { Pie, PolarChart } from "victory-native";
+import { LinearGradient } from 'expo-linear-gradient';
 
 
-// Define types
 type Mood = "happy" | "neutral" | "sad" | "bully" | "tired" | "stressed" | "sore";
 type Context = 'work' | 'home' | 'outside' | 'school' | "training" | null;
 type AloneOrWithPeople = 'alone' | 'with_people' | null;
@@ -51,6 +52,8 @@ export default function Index() {
   const [viewBubble, setViewBubble] = useState(false);
   const [viewHeart, setViewHeart] = useState(false);
   const [viewSquare, setViewSquare] = useState(false);
+  const [viewYoyo, setViewYoyo] = useState(false);
+  const [pieData, setPieData] = useState<{ x: string; y: number }[]>([]);
 
 
 
@@ -138,6 +141,18 @@ export default function Index() {
     const stressedPercentage = totalMoods ? ((stressedCount / totalMoods) * 100).toFixed(2) : "0";
     const sorePercentage = totalMoods ? ((soreCount / totalMoods) * 100).toFixed(2) : "0";
 
+    // const pieData = [
+    //   { x: "Happy", y: Number(happyPercentage) },
+    //   { x: "Neutral", y: Number(neutralPercentage) },
+    //   { x: "Sad", y: Number(sadPercentage) },
+    //   { x: "Bully", y: Number(bullyPercentage) },
+    //   { x: "Tired", y: Number(tiredPercentage) },
+    //   { x: "Stressed", y: Number(stressedPercentage) },
+    //   { x: "Sore", y: Number(sorePercentage) }
+    // ].filter(entry => entry.y > 0);
+
+    //   setPieData(pieData);
+
 
     // Display results and allow for further analysis
     setResults({
@@ -151,7 +166,11 @@ export default function Index() {
       stressedPercentage,
       sorePercentage
     });
+
+
+
   }
+
 
 
   async function furtherAnalysis(){
@@ -202,10 +221,23 @@ export default function Index() {
   function displaySquare(){
     setViewSquare(prevView => !prevView)
   }
+  function displayYoyo(){
+    setViewYoyo(prevView => !prevView)
+  }
 
   const [showIntro, setShowIntro] = useState(true);
 
   const buttonColors: string[] = ['#fd4949', '#40d63d', '#444cf6', '#ff9741', '#ca3bff'];
+
+
+  const gradientColors = [
+    ['#4c9aff', '#1c6ed5'], // work
+    ['#36b37e', '#257a57'], // home
+    ['#ffab00', '#cc8700'], // outside
+    ['#6554c0', '#4a3d8f'], // school
+    ['#ff5630', '#cc3f22'], // training
+  ];
+
 
   return showIntro ? (
     <IntroScreen onFinish={() => setShowIntro(false)} />
@@ -239,20 +271,22 @@ export default function Index() {
             customStyle={[
               styles.contextButton,
               selectedContext === context && styles.selectedContextButton,
-              { backgroundColor: buttonColors[index] }, // Dynamically assigning color using index
+              { backgroundColor: buttonColors[index],
+                borderWidth: 2,
+               }, // Dynamically assigning color using index
             ]}
           />
         ))}
       </View>
 
 
-      {/* <Button
+      <Button
           onPress={selectAnimations}
           mood='neutral'
           label={viewAnimations ? 'Hide Exercises' : "Breathing Exercises"}
           customStyle={styles.selectAgainButton}
           renderDelay={1000}
-          /> */}
+          />
 
       {viewAnimations && (<View style={styles.animationDisplay}>
         <Button label='Bubbles'
@@ -269,6 +303,11 @@ export default function Index() {
         customStyle={styles.contextButton}
         onPress={displaySquare}/>
         {viewSquare && <Square/>}
+
+        <Button label='Yoyo'
+        customStyle={styles.contextButton}
+        onPress={displayYoyo}/>
+        {viewYoyo && <Yoyo/>}
 
         </View>)}
 
@@ -582,6 +621,30 @@ export default function Index() {
     )}
 
     </View>
+
+    {/* {pieData.length > 0 && (
+  <View style={{ height: 300 }}>
+    <PolarChart
+      data={pieData}
+      colorScale={[
+        "#4CAF50",
+        "#9E9E9E",
+        "#2196F3",
+        "#FF5722",
+        "#FFC107",
+        "#673AB7",
+        "#E91E63"
+      ]}
+      innerRadius={50}
+      labelRadius={80}
+      animate={{ duration: 800 }}
+      style={{
+        labels: { fontSize: 12, fill: "white" }
+      }}
+    >
+      <Pie.Chart />
+    </PolarChart>
+  </View> */}
 </View>
 
 
@@ -698,7 +761,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 35,
-    color: 'black',
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.1)",
   },
   contextContainer: {
     flexDirection: 'row',
@@ -752,13 +816,27 @@ const styles = StyleSheet.create({
     maxHeight: 50,
     margin: 0,
     color: "white",
-  },
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 5,
+
+   },
+
   selectedContextButton: {
     backgroundColor: 'rgb(255, 255, 255)',
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   finishButtonContainer: {
     marginTop: 10,
     gap: 0,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
 
   },
   finishButton: {
@@ -767,6 +845,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 150,
     maxHeight: 50,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   furtherButton: {
@@ -777,6 +859,10 @@ const styles = StyleSheet.create({
     maxHeight: 50,
     borderColor: "white",
     borderWidth: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   resultsContainer: {
