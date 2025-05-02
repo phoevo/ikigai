@@ -137,19 +137,19 @@ const styles = StyleSheet.create({
   },
   textContainer:{
     margin: 15,
-    backgroundColor: 'rgb(130, 61, 249)',
+    backgroundColor: 'rgb(152, 96, 249)',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   text: {
-    fontSize: 20,
+    fontSize: 22,
     color: 'black',
     textAlign: 'center',
     paddingHorizontal: 20,
     fontFamily: 'Helvetica',
-    fontWeight: 300,
-    height: 150,
+    fontWeight: 400,
+    height: 200,
   },
 });
 
